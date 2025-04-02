@@ -6,62 +6,205 @@
     <title>Critical System Alert!</title>
     <style>
         body {
-            background-color: red;
-            color: white;
+            background-color: #f0f0f0;
             font-family: Arial, sans-serif;
-            text-align: center;
-            padding: 50px;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            touch-action: none;
         }
-        h1 {
-            font-size: 3em;
+        
+        .windows-popup {
+            position: absolute;
+            width: 280px;
+            background: linear-gradient(to bottom, #0058e6, #0038a8);
+            border: 2px solid #0038a8;
+            border-radius: 8px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+            color: white;
+            padding: 15px;
+            z-index: 100;
+            animation: popIn 0.3s ease-out;
+        }
+        
+        .windows-header {
+            font-weight: bold;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .windows-content {
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+        
+        .windows-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        
+        .windows-button {
+            background: linear-gradient(to bottom, #e6e6e6, #cccccc);
+            border: 1px solid #999;
+            border-radius: 4px;
+            padding: 5px 15px;
+            color: black;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        
+        .windows-button:hover {
+            background: linear-gradient(to bottom, #f6f6f6, #e0e0e0);
+        }
+        
+        @keyframes popIn {
+            0% { transform: scale(0.8); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        
+        .warning-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 0, 0, 0.7);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            z-index: 1000;
+        }
+        
+        .warning-overlay h1 {
+            font-size: 2em;
             animation: blink 1s infinite;
         }
+        
         @keyframes blink {
             0% { opacity: 1; }
-            50% { opacity: 0; }
+            50% { opacity: 0.5; }
             100% { opacity: 1; }
-        }
-        .warning {
-            font-size: 1.5em;
-            margin-top: 20px;
-        }
-        .scan {
-            font-size: 1.2em;
-            margin-top: 30px;
-        }
-        .fake-button {
-            display: inline-block;
-            background-color: white;
-            color: red;
-            padding: 10px 20px;
-            font-size: 1.2em;
-            font-weight: bold;
-            margin-top: 20px;
-            cursor: pointer;
-            border-radius: 5px;
         }
     </style>
 </head>
 <body>
-    <h1>⚠ CRITICAL SYSTEM ERROR! ⚠</h1>
-    <p class="warning">A virus has been detected on your device. Immediate action required!</p>
-    <p class="scan">Scanning your files... <span id="percentage">0%</span></p>
-    <p id="result"></p>
+    <div id="popup-container"></div>
+    
+    <div id="warning-overlay" class="warning-overlay" style="display: none;">
+        <h1>⚠ CRITICAL ERROR! ⚠</h1>
+        <p>Multiple system failures detected!</p>
+        <p id="scan-text">Scanning device... 0%</p>
+        <div id="final-button" style="margin-top: 20px; display: none;">
+            <button style="padding: 10px 20px; font-size: 1.2em;" onclick="revealPrank()">EMERGENCY FIX</button>
+        </div>
+    </div>
+
     <script>
-        let percent = 0;
-        let interval = setInterval(() => {
-            if (percent >= 100) {
-                clearInterval(interval);
-                document.getElementById('result').innerHTML = '<span class="fake-button" onclick="aprilFools()">Remove Virus</span>';
-            } else {
-                percent += Math.floor(Math.random() * 10) + 5;
-                document.getElementById('percentage').innerText = Math.min(percent, 100) + '%';
-            }
-        }, 500);
+        const messages = [
+            { title: "Security Alert", content: "Virus detected in system32 folder!" },
+            { title: "Memory Error", content: "Critical memory leak detected!" },
+            { title: "Firewall Breach", content: "Unauthorized access attempt blocked" },
+            { title: "Disk Failure", content: "Sector errors detected on main drive" },
+            { title: "Network Intrusion", content: "Malicious IP attempting connection" },
+            { title: "System Warning", content: "CPU temperature critically high" }
+        ];
         
-        function aprilFools() {
-            document.body.innerHTML = '<h1>APRIL FOOLS! 🎉</h1><p>You\'ve been pranked!</p>';
+        let popupCount = 0;
+        let scanPercent = 0;
+        let scanInterval;
+        
+        function createPopup() {
+            if (popupCount >= 15) {
+                startFinalWarning();
+                return;
+            }
+            
+            const message = messages[Math.floor(Math.random() * messages.length)];
+            const popup = document.createElement('div');
+            popup.className = 'windows-popup';
+            popup.style.left = Math.random() * (window.innerWidth - 300) + 'px';
+            popup.style.top = Math.random() * (window.innerHeight - 200) + 'px';
+            
+            popup.innerHTML = `
+                <div class="windows-header">
+                    <span>${message.title}</span>
+                    <span>×</span>
+                </div>
+                <div class="windows-content">${message.content}</div>
+                <div class="windows-buttons">
+                    <button class="windows-button" onclick="this.parentElement.parentElement.parentElement.removeChild(this.parentElement.parentElement)">OK</button>
+                </div>
+            `;
+            
+            document.getElementById('popup-container').appendChild(popup);
+            popupCount++;
+            
+            // Make popup draggable
+            let isDragging = false;
+            let offsetX, offsetY;
+            
+            popup.querySelector('.windows-header').addEventListener('mousedown', (e) => {
+                isDragging = true;
+                offsetX = e.clientX - popup.getBoundingClientRect().left;
+                offsetY = e.clientY - popup.getBoundingClientRect().top;
+                popup.style.cursor = 'grabbing';
+            });
+            
+            document.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
+                popup.style.left = (e.clientX - offsetX) + 'px';
+                popup.style.top = (e.clientY - offsetY) + 'px';
+            });
+            
+            document.addEventListener('mouseup', () => {
+                isDragging = false;
+                if (popup) popup.style.cursor = 'default';
+            });
+            
+            // Schedule next popup
+            setTimeout(createPopup, Math.random() * 1500 + 500);
         }
+        
+        function startFinalWarning() {
+            document.getElementById('warning-overlay').style.display = 'flex';
+            
+            scanInterval = setInterval(() => {
+                scanPercent += Math.floor(Math.random() * 5) + 1;
+                if (scanPercent >= 100) {
+                    scanPercent = 100;
+                    clearInterval(scanInterval);
+                    document.getElementById('final-button').style.display = 'block';
+                }
+                document.getElementById('scan-text').textContent = `Scanning device... ${scanPercent}%`;
+            }, 200);
+        }
+        
+        function revealPrank() {
+            document.body.innerHTML = `
+                <div style="height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; background-color: #4CAF50; color: white; text-align: center; padding: 20px;">
+                    <h1 style="font-size: 3em;">APRIL FOOLS! 🎉</h1>
+                    <p style="font-size: 1.5em;">Your device is perfectly fine!</p>
+                    <p style="margin-top: 30px;">You've been pranked by a harmless webpage simulation</p>
+                    <button onclick="window.location.reload()" style="margin-top: 30px; padding: 10px 20px; font-size: 1.2em; background: white; color: #4CAF50; border: none; border-radius: 5px;">
+                        Try Again?
+                    </button>
+                </div>
+            `;
+        }
+        
+        // Start the prank
+        setTimeout(createPopup, 1000);
+        
+        // Prevent scrolling on mobile
+        document.addEventListener('touchmove', (e) => {
+            if (document.getElementById('warning-overlay').style.display === 'flex') {
+                e.preventDefault();
+            }
+        }, { passive: false });
     </script>
 </body>
 </html>
