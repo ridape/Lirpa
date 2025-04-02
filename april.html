@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Critical System Alert!</title>
+    <style>
+        body {
+            background-color: red;
+            color: white;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 50px;
+        }
+        h1 {
+            font-size: 3em;
+            animation: blink 1s infinite;
+        }
+        @keyframes blink {
+            0% { opacity: 1; }
+            50% { opacity: 0; }
+            100% { opacity: 1; }
+        }
+        .warning {
+            font-size: 1.5em;
+            margin-top: 20px;
+        }
+        .scan {
+            font-size: 1.2em;
+            margin-top: 30px;
+        }
+        .fake-button {
+            display: inline-block;
+            background-color: white;
+            color: red;
+            padding: 10px 20px;
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-top: 20px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>⚠ CRITICAL SYSTEM ERROR! ⚠</h1>
+    <p class="warning">A virus has been detected on your device. Immediate action required!</p>
+    <p class="scan">Scanning your files... <span id="percentage">0%</span></p>
+    <p id="result"></p>
+    <script>
+        let percent = 0;
+        let interval = setInterval(() => {
+            if (percent >= 100) {
+                clearInterval(interval);
+                document.getElementById('result').innerHTML = '<span class="fake-button" onclick="aprilFools()">Remove Virus</span>';
+            } else {
+                percent += Math.floor(Math.random() * 10) + 5;
+                document.getElementById('percentage').innerText = Math.min(percent, 100) + '%';
+            }
+        }, 500);
+        
+        function aprilFools() {
+            document.body.innerHTML = '<h1>APRIL FOOLS! 🎉</h1><p>You\'ve been pranked!</p>';
+        }
+    </script>
+</body>
+</html>
